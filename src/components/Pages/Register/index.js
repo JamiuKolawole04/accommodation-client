@@ -1,0 +1,88 @@
+import { useState, useContext } from "react";
+import { useNavigate } from "react-router-dom";
+
+import { authContext } from "../../../context/authContext";
+import axios from "../../../utils/axios";
+
+const Register = () => {
+  const navigate = useNavigate();
+  const [credentials, setCredentials] = useState({
+    email: undefined,
+    password: undefined,
+    username: undefined,
+  });
+
+  const { error, loading, dispatch } = useContext(authContext);
+
+  const handleChange = (e) => {
+    setCredentials((prev) => ({
+      ...prev,
+      [e.target.id]: e.target.value,
+    }));
+  };
+
+  const handleClick = async (e) => {
+    e.preventDefault();
+    dispatch({
+      type: "REGISTER_START",
+    });
+    try {
+      const { data } = await axios({
+        method: "post",
+        data: credentials,
+        url: "/auth/register",
+      });
+      dispatch({
+        type: "REGISTER_SUCCESS",
+        payload: data.details,
+      });
+      navigate("/");
+    } catch (err) {
+      dispatch({
+        type: "REGISTER_FAILURE",
+        payload: err.response.data.message,
+      });
+    }
+  };
+
+  return (
+    <div className="login">
+      <div className="login__container">
+        <input
+          type="email"
+          name="email"
+          id="email"
+          placeholder="mail"
+          className="loginInput"
+          onChange={handleChange}
+        />
+        <input
+          type="password"
+          name="password"
+          id="password"
+          placeholder="password"
+          className="loginInput"
+          onChange={handleChange}
+        />
+        <input
+          type="text"
+          name="username"
+          id="username"
+          placeholder="username"
+          className="loginInput"
+          onChange={handleChange}
+        />
+        <button
+          disabled={loading}
+          className="loginButton"
+          onClick={handleClick}
+        >
+          Register
+        </button>
+        {error && <div className="error">{error}</div>}
+      </div>
+    </div>
+  );
+};
+
+export default Register;
